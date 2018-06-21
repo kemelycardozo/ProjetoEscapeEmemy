@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html>
+    <head>
+		<title>FASE1</title>
+		<style>
+			html, body {
+				width: 100%;
+				height: 100%;
+				margin: 0px;
+				border: 0;
+				overflow: hidden;  /* Desabilita Barra de Rolagem */
+				display: block;    /* Não permite conteudo flutuar nos lados */
+			}
+
+		  #canvas {
+		   	    /* background-image: url('https://wallpapersite.com/images/wallpapers/stars-2880x1800-galaxy-4k-6362.jpg'); */
+				background-image:url('1.jpg');
+				background-color: "black";
+		   	    background-size: 100% 100%;
+		   	    background-repeat: no-repeat;
+		   		background-color: black;
+		   }
+		   #sims {
+		   		width: 40px;
+		   		height: 20px;
+		   		display: none;
+		   }
+
+
+		   #vidas {
+		   		 width: 40px;
+		   		height: 20px;
+		   		display: none;
+		   }
+
+		    #tempo {
+		   		width: 40px;
+		   		height: 20px;
+		   		display: none;
+		   }
+
+
+		   #cronometro {
+				width: 40px;
+		   		height: 20px;
+			    display: none;
+		   }
+		   #meteoro {
+		   		width: 40px;
+		   		height: 20px;
+		   		/* display: none; */
+		   }
+		   #o2 {
+		   		width: 40px;
+		   		height: 20px;
+		   		/* display: none;  */
+		   }
+		   #coracao_vida {
+		   		width: 40px;
+		   		height: 20px;
+
+		   }
+
+		</style>
+    </head>
+    <body  onload="inicializar()" id="fundo">
+		<img src="astronautaEsq.png" id="sims"/>
+		<img src="coracao.png" id ="vidas"/>
+		<img src="coracao.png" id ="coracao_vida"/>
+		<img src="tempo.png" id ="tempo"/>
+		<img src="meteoro.png" id="meteoro">
+		<img src="o2.png" id="o2">
+
+		<span id="cronometro" style="color: red; font-size: 30px;"></span>
+
+	<canvas id="canvas" style='position:absolute; left:0px; top:0px;'>
+			Navegador não suporta HTML5
+		</canvas>
+
+
+		<script type="text/javascript">
+
+
+
+			var simsAltura, simsLargura, jogadorPosicaoX, velocidadeJogador, jogadorPosicaoY, vidas, pontos, jogadorPause, tempoJogo;
+			var intervalo, imgMeteoro;
+			var alturaMeteoro, larguraMeteoro;
+			var o2X, o2Y;
+			var o2VelocidadeX,o2VelocidadeY, o2velobaseX, o2velobaseY;
+			var imgo2;
+
+			var coracao_vidaX, coracao_vidaY, coracao_vidaXX, coracao_vidaYY;
+			var coracao_vidaVelocidadeX, coracao_vidaVelocidadeY;
+
+
+			var raio = new Array(
+				{'raio' : 30, 'vidas' : -1},
+				{'raio' : 30, 'vidas' : -1,},
+				{'raio' : 30, 'vidas' : -1,}
+			);
+
+
+			function inicializar()
+			{
+				simsAltura = 85;
+				simsLargura = 70;
+
+				tempoJogo = 30;
+
+				jogadorPause = false;
+
+				vidas = 5;
+				pontos = 0;
+
+				jogadorPosicaoX = 141;
+				jogadorPosicaoY = 377;
+
+				primeira = new meteoro()
+				meteoros = new Array(primeira);
+
+
+				o2X = Math.random() * canvas.width;
+				o2Y = Math.random() * canvas.height;
+				o2VelocidadeX =  Math.round(Math.random() * (8 - 4)) + 4;
+				o2VelocidadeY =  Math.round(Math.random() * (8 - 4)) + 4;
+				o2velobaseX =  o2VelocidadeX;
+				o2velobaseY = o2VelocidadeY;
+
+				coracao_vidaX = Math.random() * canvas.width;
+				coracao_vidaY = Math.random() * canvas.height;
+				coracao_vidaVelocidadeX = 8;
+				coracao_vidaVelocidadeY = 16;
+
+				velocidadeJogador = 15;
+
+				canvas = document.getElementById("canvas");
+				context = canvas.getContext("2d");
+
+				document.addEventListener('keydown', keyDown);
+
+
+				cronometro(tempoJogo);
+				resizeCanvas();
+
+				intervalo = setInterval(gameLoop, 30);
+
+			}
+
+			/* Nova função para RESIZE */
+		    function resizeCanvas() {
+		    canvas.width = window.innerWidth;
+		    canvas.height = window.innerHeight;
+		    gameLoop();
+		    }
+
+
+
+
+			function keyDown(e)
+			{
+				if(e.keyCode == 37)  // Seta para a Direita
+				{
+					if(jogadorPosicaoX > 0)
+					{
+						jogadorPosicaoX -= velocidadeJogador;
+					}
+				}
+
+				if(e.keyCode == 39)  // Seta para a Esquerda
+				{
+					if(jogadorPosicaoX < (canvas.width - simsLargura))
+					{
+						jogadorPosicaoX += velocidadeJogador;
+					}
+				}
+
+						if (e.keyCode == 38){ // seta para cima
+
+					if(jogadorPosicaoY > 0)
+					{
+						jogadorPosicaoY -= velocidadeJogador;
+					}
+				}
+				if(e.keyCode == 40)  // Seta para baixo
+				{
+					if(jogadorPosicaoY < (canvas.height - simsAltura))
+					{
+						jogadorPosicaoY += velocidadeJogador;
+					}
+				}
+
+				if(e.keyCode == 81)  // Q (Quiet)
+				{
+					jogadorfim = true;
+				}
+
+				if(e.keyCode == 80) // P (Pause)
+				{
+					if(jogadorPause)
+					{
+						jogadorPause = false; //Para de rodar o intervalo.
+						intervalo = setInterval(gameLoop, 30);
+						cronometro(document.getElementById("cronometro").innerHTML);
+					}
+					else
+					{
+						jogadorPause = true;
+						gameLoop();
+
+						clearInterval(intervalo);
+						clearTimeout(timerId);
+
+					}
+				}
+			}
+
+			function meteoro(){
+				var index = Math.round(Math.random() * (3 - 1) +1) - 1;
+				this.meteorosRaio = raio[index]['raio'];
+				this.meteorosvidas = raio[index]['vidas'];
+				//this.meteorosCor = raio[index]['cor'];
+				this.meteorosPosX = Math.random() * canvas.width - 55;
+				this.meteorosPosY = Math.random() * canvas.height - 55;
+				this.meteorosSpeedX = Math.round(Math.random() * (15 - 3)) + 3;
+				this.meteorosSpeedY = Math.round(Math.random() * (15 - 3)) + 3;
+				this.meteorosBaseX = Math.round(Math.random() * (15 - 3)) + 3;
+				this.meteorosBaseY = Math.round(Math.random() * (15 - 3)) + 3;
+				this.colisao = false
+				this.imgMeteoro = document.getElementById("meteoro");
+				this.alturaMeteoro = raio[index]['raio'];
+				this.larguraMeteoro = raio[index]['raio'];
+
+			}
+
+			function gameLoop()
+			{
+				//Limpa Tela
+				context.clearRect(0, 0, canvas.width, canvas.height);
+
+				//Desenha o campo
+				context.fillStyle = 'rgba(255,255, 255,0.01)';
+				context.fillRect(50, 75, canvas.width - 90, canvas.height - 110	);
+
+				//Mostra Sims
+				var sims = document.getElementById("sims");
+				context.drawImage(sims,jogadorPosicaoX,jogadorPosicaoY,simsLargura,simsAltura);
+
+				if(jogadorPause){
+					context.font = "12pt Bernard MT";
+					context.fillStyle= 'rgb(255, 255, 255)'
+					context.fillText('GAME PAUSED',(canvas.width - 90) / 2,(canvas.height/2)-180,125,110);
+				}
+
+				// Nome do Jogo
+				// context.font= "50pt Brush Script Std"
+				// context.fillStyle= 'rgb(255, 255, 255)';
+				// context.fillText('Escape Enemy',(canvas.width - 235) / 2,50);
+
+				//Mostra vida
+				var coracao = document.getElementById("vidas");
+				context.drawImage(coracao,10,10,50,50);
+				context.font = "32pt Bernard MT";
+                context.fillStyle= 'rgb(255,255,0)';
+				context.fillText(vidas, 60, 50);
+
+				//Pontos
+				context.fillStyle= 'rgb(255, 255, 255)';
+
+				context.fillText('P:'+ pontos, 150, 50);
+
+				// Escreve Tempo restante
+				var tempo = document.getElementById("tempo");
+				context.drawImage(tempo,270,10,35,50);
+				context.fillText(' '+document.getElementById("cronometro").innerHTML, 300, 50);
+
+				//desenha O2
+				var o2 = document.getElementById("o2");
+				 context.drawImage(o2,o2X,o2Y,25,60);
+				 context.beginPath();
+				// //context.fillStyle = "pink";
+				// //context.arc(o2X, o2Y, 25, 0, Math.PI * 2, true);
+				 context.closePath();
+				 context.fill();
+
+				if(meteoros.length <= 1)//linhas do array
+				{
+					meteoros.push(new meteoro());//se n tiver ele cria
+				}
+
+				//Meteoros
+				meteoros.forEach(function(b, index){
+
+					context.drawImage(b.imgMeteoro,b.meteorosPosX,b.meteorosPosY,b.larguraMeteoro,b.alturaMeteoro);
+					//context.beginPath();
+					//context.fillStyle = b.meteorosCor;
+					//context.arc(b.meteorosPosX, b.meteorosPosY, b.meteorosRaio, 0, Math.PI * 2, true);
+					context.fill();
+
+					//Criar novo meteoro?
+
+					b.meteorosPosX += b.meteorosSpeedX;
+					b.meteorosPosY += b.meteorosSpeedY;
+
+					if(b.meteorosPosY > canvas.height - 55){
+						b.meteorosSpeedY = -b.meteorosSpeedY;
+					}
+
+					if(b.meteorosPosY < 90){
+						b.meteorosSpeedY = b.meteorosBaseY;
+					}
+
+					if(b.meteorosPosX > canvas.width - 55){
+						b.meteorosSpeedX = -b.meteorosSpeedX;
+					}
+
+					if(b.meteorosPosX <= 70){
+						b.meteorosSpeedX = b.meteorosBaseX;
+					}
+
+
+					//Checar colisao meteoro
+					if(b.meteorosPosX + 15 >= jogadorPosicaoX && b.meteorosPosX <=(jogadorPosicaoX + simsLargura) &&
+						b.meteorosPosY+ 15 >= jogadorPosicaoY && b.meteorosPosY <= (jogadorPosicaoY + simsAltura) && b.colisao == false ){
+							b.colisao = true;
+							vidas--;
+							document.getElementById(meteoro).setAttribute('style', 'display:none');
+					}
+
+					if(((b.meteorosPosX + 15) < jogadorPosicaoX || b.meteorosPosX > (jogadorPosicaoX + simsLargura)) && ((b.meteorosPosY + 15) < jogadorPosicaoY || b.meteorosPosY > (jogadorPosicaoY + simsAltura))){
+						b.colisao = false;
+					}
+
+					if(vidas == 0){
+						//Limpa tela
+						context.clearRect(0,0, canvas.width, canvas.height);
+						context.font = "32pt Bernard MT";
+		        		context.fillStyle= 'rgb(255,255,255)';
+						context.fillText("You died!", (canvas.width-250)/2, (canvas.height- 100) /2);
+						context.drawImage(o2,(canvas.width - 400) / 2,(canvas.height - 60) / 2 ,60,60);
+						context.fillText(" "+ pontos,(canvas.width - 250) / 2,(canvas.height + 45) / 2 )
+						clearInterval(intervalo);
+  						clearTimeout(timerId);
+					}
+					
+				})
+				if(vidas <= 2){
+					//desenha coracao vida
+					var coracao_vida = document.getElementById("coracao_vida");
+					context.drawImage(coracao_vida,coracao_vidaX,coracao_vidaY,50,50);
+					context.beginPath();
+					context.closePath();
+					context.fill();
+
+					vidaItem();
+				}
+				o2Item();
+			}
+
+			function pontoItem(){
+				if(ponto == 3){
+					game_over();
+				}
+			}
+
+			 function o2Item(){
+
+				o2X += o2VelocidadeX;
+        		o2Y += o2VelocidadeY;
+
+				if(o2Y > canvas.height - 55){
+			 			o2VelocidadeY = -o2VelocidadeY;
+					}
+
+			 		if(o2Y < 90){
+			 			o2VelocidadeY = o2velobaseY;
+			 		}
+
+			 		if(o2X > canvas.width - 55){
+			 			o2VelocidadeX = -o2VelocidadeX;
+			 		}
+
+			 		if(o2X < 70){
+			 			o2VelocidadeX = o2velobaseX;
+			 		}
+
+
+					if(o2X  >= jogadorPosicaoX && o2X <= (jogadorPosicaoX + simsLargura) &&
+			 		o2Y  >= jogadorPosicaoY && o2Y <= (jogadorPosicaoY + simsAltura) && colisao == false)
+			 		{
+			 			colisao = true;
+			 			pontos++;
+
+						meteoros.push(new meteoro());
+			 		}
+			 		if((o2X  < jogadorPosicaoX || o2X > (jogadorPosicaoX + simsLargura)) &&
+					 (o2Y < jogadorPosicaoY || o2Y > (jogadorPosicaoY + simsAltura))){
+			 		colisao = false;
+
+			 	}
+				
+			 }
+
+			 function vidaItem(){
+				var colisao1 = false;
+				if(coracao_vidaX  >= jogadorPosicaoX && coracao_vidaX <= (jogadorPosicaoX + simsLargura) &&
+			 		coracao_vidaY  >= jogadorPosicaoY && coracao_vidaY <= (jogadorPosicaoY + simsAltura) && colisao1 == false)
+			 		{
+
+						colisao1 = true;
+			 			vidas++;
+						//document.body.removeChild(coracao_vida).setAttribute('style', 'display:none');
+						document.getElementById(coracao_vida).setAttribute('style', 'display:none');
+			 		}
+			 		if((coracao_vidaX < jogadorPosicaoX || coracao_vidaX > (jogadorPosicaoX + simsLargura)) &&
+					 (coracao_vidaY < jogadorPosicaoY || coracao_vidaY > (jogadorPosicaoY + simsAltura))){
+			 			colisao1 = false;
+
+
+			 	}
+
+					 coracao_vidaX += coracao_vidaVelocidadeX;
+					 coracao_vidaY += coracao_vidaVelocidadeY;
+
+					   	if(coracao_vidaY > canvas.height - 55){
+					   			coracao_vidaVelocidadeY = -5 ;
+					   		}
+
+					   		if(coracao_vidaY < 90){
+					   			coracao_vidaVelocidadeY = 5;
+					   		}
+
+					   		if(coracao_vidaX > canvas.width - 55){
+					   			coracao_vidaVelocidadeX = -5;
+					   		}
+
+					   		if(coracao_vidaX < 70){
+					   			coracao_vidaVelocidadeX = 5;
+					   		}
+			 }
+			
+			function game_over()
+			{
+				//Limpa tela
+				context.clearRect(0,0, canvas.width, canvas.height);
+
+				//Mensagem de fim de jogo
+				// context.font = "32pt Tahoma";
+		        // context.fillStyle= 'rgb(255,255,255)';
+				// context.fillText("VERY GOOD!", (canvas.width-250)/2, (canvas.height-32)/2);
+				// // var btn = document.getElementById('botao');
+				// // var botao = document.createElement("button");
+				// clearInterval(intervalo);
+  				// clearTimeout(timerId);
+
+				  
+				  
+				var msg;
+				var ret = confirm("VERY GOOD!FASE2");
+				if(ret == true){
+				// msg= "xc vdeu certo";
+				
+				window.location.assign("fase2.html");
+				}else{
+					msg="nao deu certo";
+				}
+				// document.write(msg);
+				//   confirm("fase");
+
+			}
+			
+			function cronometro (segundos)
+			{
+				document.getElementById("cronometro").innerHTML = segundos;
+				timerId = setTimeout("cronometro("+ (segundos - 1) +")", 1000); //A cada 1 seg uma chamada recursiva é chamada, atualizando o valor do cronometro.
+
+				if(segundos== 0){
+					clearTimeout(timerId); //Para o cronometro.
+					game_over();
+					document.getElementById("cronometro").innerHTML = 0;
+					return false;
+
+				}
+
+
+
+			}
+
+		</script>
+		<!-- <button id="botao" onclick="gameLoop()">Inserir</button> -->
+		<!-- <a href="tutorial.html" class="button">TUTORIAL</a> -->
+		<audio src="F:\JOGO 10 - contrução 4\efeitos sonoros/alerta.mp3">
+
+	</body>
+</html>

@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html>
+    <head>
+		<title>FASE4</title>
+		<style>
+			html, body {
+				width: 100%;
+				height: 100%;
+				margin: 0px;
+				border: 0;
+				overflow: hidden;  /* Desabilita Barra de Rolagem */
+				display: block;    /* Não permite conteudo flutuar nos lados */
+			}
+
+		  #canvas {
+		   	    /* background-image: url('https://wallpapersite.com/images/wallpapers/stars-2880x1800-galaxy-4k-6362.jpg'); */
+				background-image:url('praia.jpg');
+				background-color: "black";
+		   	    background-size: 100% 100%;
+		   	    background-repeat: no-repeat;
+		   		background-color: black;
+		   }
+		   #banhista {
+		   		width: 40px;
+		   		height: 20px;
+		   		display: none;
+		   }
+
+		   #vidas {
+		   		 width: 40px;
+		   		height: 20px;
+		   		display: none;
+		   }
+
+		    #tempo {
+		   		width: 40px;
+		   		height: 20px;
+		   		display: none;
+		   }
+
+
+		   #cronometro {
+				width: 40px;
+		   		height: 20px;
+			    display: none;
+		   }
+		   #cara {
+		   		width: 40px;
+		   		height: 20px;
+		   		/* display: none; */
+		   }
+		   #bola {
+		   		width: 40px;
+		   		height: 20px;
+		   		/* display: none;  */
+		   }
+		   #coracao_vida {
+		   		width: 40px;
+		   		height: 20px;
+
+		   }
+
+		   /* .button {
+            background-color: #555555;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 5px;
+            } */
+		</style>
+    </head>
+    <body  onload="inicializar()" id="fundo">
+		<img src="banhista.png" id="banhista"/>
+		<img src="coracao.png" id ="vidas"/>
+		<img src="coracao.png" id ="coracao_vida"/>
+		<img src="tempo.png" id ="tempo"/>
+		<img src="cara.png" id="cara">
+		<img src="bola.png" id="bola">
+
+		<span id="cronometro" style="color: red; font-size: 30px;"></span>
+
+	<canvas id="canvas" style='position:absolute; left:0px; top:0px;'>
+			Navegador não suporta HTML5
+		</canvas>
+
+
+		<script type="text/javascript">
+
+
+
+			var banhistaAltura, banhistaLargura, jogadorPosicaoX, velocidadeJogador, jogadorPosicaoY, vidas, pontos, jogadorPause, tempoJogo;
+			var intervalo, imgCara;
+			var alturaCara, larguraCara;
+			var bolaX, bolaY;
+			var bolaVelocidadeX,bolaVelocidadeY, bolavelobaseX, bolavelobaseY;
+			var imgbola;
+
+			var coracao_vidaX, coracao_vidaY, coracao_vidaXX, coracao_vidaYY;
+			var coracao_vidaVelocidadeX, coracao_vidaVelocidadeY;
+
+
+			var raio = new Array(
+				{'raio' : 40, 'vidas' : -1},
+				{'raio' : 45, 'vidas' : -1,},
+				{'raio' : 35, 'vidas' : -1,}
+			);
+
+
+			function inicializar()
+			{
+				banhistaAltura = 85;
+				banhistaLargura = 70;
+
+				tempoJogo = 30;
+
+				jogadorPause = false;
+
+				vidas = 5;
+				pontos = 0;
+
+				jogadorPosicaoX = 141;
+				jogadorPosicaoY = 377;
+
+				primeira = new cara()
+				caras = new Array(primeira);
+
+
+				bolaX = Math.random() * canvas.width;
+				bolaY = Math.random() * canvas.height;
+				bolaVelocidadeX =  Math.round(Math.random() * (8 - 4)) + 4;
+				bolaVelocidadeY =  Math.round(Math.random() * (8 - 4)) + 4;
+				bolavelobaseX =  bolaVelocidadeX;
+				bolavelobaseY = bolaVelocidadeY;
+
+				coracao_vidaX = Math.random() * canvas.width;
+				coracao_vidaY = Math.random() * canvas.height;
+				coracao_vidaVelocidadeX = 8;
+				coracao_vidaVelocidadeY = 16;
+
+				velocidadeJogador = 15;
+
+				canvas = document.getElementById("canvas");
+				context = canvas.getContext("2d");
+
+				document.addEventListener('keydown', keyDown);
+				//document.addEventListener('keyup', keyUp);
+
+				cronometro(tempoJogo);
+				resizeCanvas();
+
+				intervalo = setInterval(gameLoop, 30);
+
+			}
+
+			/* Nova função para RESIZE */
+		    function resizeCanvas() {
+		    canvas.width = window.innerWidth;
+		    canvas.height = window.innerHeight;
+		    gameLoop();
+		    }
+
+
+
+
+			function keyDown(e)
+			{
+				if(e.keyCode == 37)  // Seta para a Direita
+				{
+					if(jogadorPosicaoX > 0)
+					{
+						jogadorPosicaoX -= velocidadeJogador;
+					}
+				}
+
+				if(e.keyCode == 39)  // Seta para a Esquerda
+				{
+					if(jogadorPosicaoX < (canvas.width - banhistaLargura))
+					{
+						jogadorPosicaoX += velocidadeJogador;
+					}
+				}
+
+						if (e.keyCode == 38){ // seta para cima
+
+					if(jogadorPosicaoY > 0)
+					{
+						jogadorPosicaoY -= velocidadeJogador;
+					}
+				}
+				if(e.keyCode == 40)  // Seta para baixo
+				{
+					if(jogadorPosicaoY < (canvas.height - banhistaAltura))
+					{
+						jogadorPosicaoY += velocidadeJogador;
+					}
+				}
+
+				if(e.keyCode == 81)  // Q (Quiet)
+				{
+					jogadorfim = true;
+				}
+
+				if(e.keyCode == 80) // P (Pause)
+				{
+					if(jogadorPause)
+					{
+						jogadorPause = false; //Para de rodar o intervalo.
+						intervalo = setInterval(gameLoop, 30);
+						cronometro(document.getElementById("cronometro").innerHTML);
+					}
+					else
+					{
+						jogadorPause = true;
+						gameLoop();
+
+						clearInterval(intervalo);
+						clearTimeout(timerId);
+
+					}
+				}
+			}
+
+			function cara(){
+				var index = Math.round(Math.random() * (3 - 1) +1) - 1;
+				this.carasRaio = raio[index]['raio'];
+				this.carasvidas = raio[index]['vidas'];
+				this.carasPosX = Math.random() * canvas.width - 55;
+				this.carasPosY = Math.random() * canvas.height - 55;
+				this.carasSpeedX = Math.round(Math.random() * (15 - 3)) + 3;
+				this.carasSpeedY = Math.round(Math.random() * (15 - 3)) + 3;
+				this.carasBaseX = Math.round(Math.random() * (15 - 3)) + 3;
+				this.carasBaseY = Math.round(Math.random() * (15 - 3)) + 3;
+				this.colisao = false
+				this.imgCara = document.getElementById("cara");
+				this.alturaCara = raio[index]['raio'];
+				this.larguraCara = raio[index]['raio'];
+
+			}
+
+			function gameLoop()
+			{
+				//Limpa Tela
+				context.clearRect(0, 0, canvas.width, canvas.height);
+
+				//Desenha o campo
+				context.fillStyle = 'rgba(255,255, 255,0.01)';
+				context.fillRect(50, 75, canvas.width - 90, canvas.height - 110	);
+
+				//Mostra banhista
+				var banhista = document.getElementById("banhista");
+				context.drawImage(banhista,jogadorPosicaoX,jogadorPosicaoY,banhistaLargura,banhistaAltura);
+
+				if(jogadorPause){
+					context.font = "12pt Bernard MT";
+					context.fillStyle= 'rgb(255, 255, 255)'
+					context.fillText('GAME PAUSED',(canvas.width - 90) / 2,(canvas.height/2)-180,125,110);
+				}
+
+				// Nome do Jogo
+				// context.font= "50pt Brush Script Std"
+				// context.fillStyle= 'rgb(255, 255, 255)';
+				// context.fillText('Escape Enemy',(canvas.width - 235) / 2,50);
+
+				//Mostra vida
+				var coracao = document.getElementById("vidas");
+				context.drawImage(coracao,10,10,50,50);
+				context.font = "32pt Bernard MT";
+                context.fillStyle= 'rgb(255,255,0)';
+				context.fillText(vidas, 60, 50);
+
+				//Pontos
+				context.fillStyle= 'rgb(255, 255, 255)';
+
+				context.fillText('P:'+ pontos, 150, 50);
+
+				// Escreve Tempo restante
+				var tempo = document.getElementById("tempo");
+				context.drawImage(tempo,270,10,35,50);
+				context.fillText(' '+document.getElementById("cronometro").innerHTML, 300, 50);
+
+				//desenha bola
+				var bola = document.getElementById("bola");
+				 context.drawImage(bola,bolaX,bolaY,50,50);
+				 context.beginPath();
+				 context.closePath();
+				 context.fill();
+
+				if(caras.length <= 1)//linhas do array
+				{
+					caras.push(new cara());//se n tiver ele cria
+				}
+
+				//Caras
+				caras.forEach(function(b, index){
+
+					context.drawImage(b.imgCara,b.carasPosX,b.carasPosY,b.larguraCara,b.alturaCara);
+					context.fill();
+
+					//Criar novo cara?
+
+					b.carasPosX += b.carasSpeedX;
+					b.carasPosY += b.carasSpeedY;
+
+					if(b.carasPosY > canvas.height - 55){
+						b.carasSpeedY = -b.carasSpeedY;
+					}
+
+					if(b.carasPosY < 90){
+						b.carasSpeedY = b.carasBaseY;
+					}
+
+					if(b.carasPosX > canvas.width - 55){
+						b.carasSpeedX = -b.carasSpeedX;
+					}
+
+					if(b.carasPosX <= 70){
+						b.carasSpeedX = b.carasBaseX;
+					}
+
+
+					//Checar colisao carangueijo
+					if(b.carasPosX + 15 >= jogadorPosicaoX && b.carasPosX <=(jogadorPosicaoX + banhistaLargura) &&
+						b.carasPosY+ 15 >= jogadorPosicaoY && b.carasPosY <= (jogadorPosicaoY + banhistaAltura) && b.colisao == false ){
+							b.colisao = true;
+							vidas--;
+							document.getElementById(cara).setAttribute('style', 'display:none');
+					}
+
+					if(((b.carasPosX + 15) < jogadorPosicaoX || b.carasPosX > (jogadorPosicaoX + banhistaLargura)) && ((b.carasPosY + 15) < jogadorPosicaoY || b.carasPosY > (jogadorPosicaoY + banhistaAltura))){
+						b.colisao = false;
+					}
+
+					if(vidas == 0){
+						//Limpa tela
+						context.clearRect(0,0, canvas.width, canvas.height);
+						context.font = "32pt Bernard MT";
+		        		context.fillStyle= 'rgb(255,255,255)';
+						context.fillText("You died!", (canvas.width-250)/2, (canvas.height- 100) /2);
+						context.drawImage(bola,(canvas.width - 400) / 2,(canvas.height - 60) / 2 ,60,60);
+						context.fillText(" "+ pontos,(canvas.width - 250) / 2,(canvas.height + 45) / 2 )
+						clearInterval(intervalo);
+  						clearTimeout(timerId);
+					}
+				})
+				if(vidas <= 2){
+					//desenha coracao vida
+					var coracao_vida = document.getElementById("coracao_vida");
+					context.drawImage(coracao_vida,coracao_vidaX,coracao_vidaY,50,50);
+					context.beginPath();
+					context.closePath();
+					context.fill();
+
+					vidaItem();
+				}
+				bolaItem();
+			}
+
+			 function bolaItem(){
+
+				bolaX += bolaVelocidadeX;
+        		bolaY += bolaVelocidadeY;
+
+				if(bolaY > canvas.height - 55){
+					bolaVelocidadeY = -bolaVelocidadeY;
+					}
+
+			 		if(bolaY < 90){
+						bolaVelocidadeY = bolavelobaseY;
+			 		}
+
+			 		if(bolaX > canvas.width - 55){
+						bolaVelocidadeX = -bolaVelocidadeX;
+			 		}
+
+			 		if(bolaX < 70){
+						bolaVelocidadeX = bolavelobaseX;
+			 		}
+
+
+					if(bolaX  >= jogadorPosicaoX && bolaX <= (jogadorPosicaoX + banhistaLargura) &&
+					bolaY  >= jogadorPosicaoY && bolaY <= (jogadorPosicaoY + banhistaAltura) && colisao == false)
+			 		{
+			 			colisao = true;
+			 			pontos++;
+
+						 caras.push(new cara());
+			 		}
+			 		if((bolaX  < jogadorPosicaoX || bolaX > (jogadorPosicaoX + banhistaLargura)) &&
+					 (bolaY < jogadorPosicaoY || bolaY > (jogadorPosicaoY + banhistaAltura))){
+			 		colisao = false;
+
+			 	}
+			 }
+
+			 function vidaItem(){
+				var colisao1 = false;
+				if(coracao_vidaX  >= jogadorPosicaoX && coracao_vidaX <= (jogadorPosicaoX + banhistaLargura) &&
+			 		coracao_vidaY  >= jogadorPosicaoY && coracao_vidaY <= (jogadorPosicaoY + banhistaAltura) && colisao1 == false)
+			 		{
+
+						colisao1 = true;
+			 			vidas++;
+						//document.body.removeChild(coracao_vida).setAttribute('style', 'display:none');
+						document.getElementById(coracao_vida).setAttribute('style', 'display:none');
+			 		}
+			 		if((coracao_vidaX < jogadorPosicaoX || coracao_vidaX > (jogadorPosicaoX + banhistaLargura)) &&
+					 (coracao_vidaY < jogadorPosicaoY || coracao_vidaY > (jogadorPosicaoY + banhistaAltura))){
+			 			colisao1 = false;
+
+
+
+			 	}
+
+					 coracao_vidaX += coracao_vidaVelocidadeX;
+					 coracao_vidaY += coracao_vidaVelocidadeY;
+
+					   	if(coracao_vidaY > canvas.height - 55){
+					   			coracao_vidaVelocidadeY = -5 ;
+					   		}
+
+					   		if(coracao_vidaY < 90){
+					   			coracao_vidaVelocidadeY = 5;
+					   		}
+
+					   		if(coracao_vidaX > canvas.width - 55){
+					   			coracao_vidaVelocidadeX = -5;
+					   		}
+
+					   		if(coracao_vidaX < 70){
+					   			coracao_vidaVelocidadeX = 5;
+					   		}
+			 }
+
+			function game_over()
+			{
+				//Limpa tela
+				context.clearRect(0,0, canvas.width, canvas.height);
+
+				//Mensagem de fim de jogo
+				// context.font = "32pt Tahoma";
+		        // context.fillStyle= 'rgb(255,255,255)';
+				// context.fillText("VERY GOOD!", (canvas.width-250)/2, (canvas.height-32)/2);
+				// // var btn = document.getElementById('botao');
+				// // var botao = document.createElement("button");
+				// clearInterval(intervalo);
+  				// clearTimeout(timerId);
+
+				
+				
+				var msg;
+				var ret = confirm("VERY GOOD!");
+				if(ret == true){
+				// msg= "xc vdeu certo";
+				window.location.assign("menu.html");
+				}else{
+					msg="nao deu certo";
+				}
+				// document.write(msg);
+				//   confirm("fase");
+
+			}
+			
+			function cronometro (segundos)
+			{
+				document.getElementById("cronometro").innerHTML = segundos;
+				timerId = setTimeout("cronometro("+ (segundos - 1) +")", 1000); //A cada 1 seg uma chamada recursiva é chamada, atualizando o valor do cronometro.
+
+				if(segundos== 0){
+					clearTimeout(timerId); //Para o cronometro.
+					game_over();
+					document.getElementById("cronometro").innerHTML = 0;
+					return false;
+
+				}
+
+
+
+			}
+
+		</script>
+		<!-- <button id="botao" onclick="gameLoop()">Inserir</button> -->
+		<!-- <a href="tutorial.html" class="button">TUTORIAL</a> -->
+
+	</body>
+</html>

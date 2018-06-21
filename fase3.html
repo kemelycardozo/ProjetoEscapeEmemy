@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+    <head>
+		<title>FASE3</title>
+		<style>
+			html, body {
+				width: 100%;
+				height: 100%;
+				margin: 0px;
+				border: 0;
+				overflow: hidden;  /* Desabilita Barra de Rolagem */
+				display: block;    /* Não permite conteudo flutuar nos lados */
+			}
+
+		  #canvas {
+		   	    /* background-image: url('https://wallpapersite.com/images/wallpapers/stars-2880x1800-galaxy-4k-6362.jpg'); */
+				background-image:url('floresta.jpg');
+				background-color: "black";
+		   	    background-size: 100% 100%;
+		   	    background-repeat: no-repeat;
+		   		background-color: black;
+		   }
+		   #cacador {
+		   		width: 40px;
+		   		height: 20px;
+		   		display: none;
+		   }
+
+		   #vidas {
+		   		 width: 40px;
+		   		height: 20px;
+		   		display: none;
+		   }
+
+		    #tempo {
+		   		width: 40px;
+		   		height: 20px;
+		   		display: none;
+		   }
+
+
+		   #cronometro {
+				width: 40px;
+		   		height: 20px;
+			    display: none;
+		   }
+		   #cobra {
+		   		width: 40px;
+		   		height: 20px;
+		   		/* display: none; */
+		   }
+		   #facao {
+		   		width: 40px;
+		   		height: 20px;
+		   		/* display: none;  */
+		   }
+		   #coracao_vida {
+		   		width: 40px;
+		   		height: 20px;
+
+		   }
+
+		   /* .button {
+            background-color: #555555;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 5px;
+            } */
+		</style>
+    </head>
+    <body  onload="inicializar()" id="fundo">
+		<img src="cacador.png" id="cacador"/>
+		<img src="coracao.png" id ="vidas"/>
+		<img src="coracao.png" id ="coracao_vida"/>
+		<img src="tempo.png" id ="tempo"/>
+		<img src="cobra.png" id="cobra">
+		<img src="facao.png" id="facao">
+
+		<span id="cronometro" style="color: red; font-size: 30px;"></span>
+
+	<canvas id="canvas" style='position:absolute; left:0px; top:0px;'>
+			Navegador não suporta HTML5
+		</canvas>
+
+
+		<script type="text/javascript">
+
+
+
+			var cacadorAltura, cacadorLargura, jogadorPosicaoX, velocidadeJogador, jogadorPosicaoY, vidas, pontos, jogadorPause, tempoJogo;
+			var intervalo, imgCobra;
+			var alturaCobra, larguraCobra;
+			//var vidacreditoX, vidacreditoY, vidacreditoVelocidadeX, vidacreditovelocidadeY;
+			var facaoX, facaoY;
+			var facaoVelocidadeX,facaoVelocidadeY, facaovelobaseX, facaovelobaseY;
+			var imgfacao;
+
+			var coracao_vidaX, coracao_vidaY, coracao_vidaXX, coracao_vidaYY;
+			var coracao_vidaVelocidadeX, coracao_vidaVelocidadeY;
+
+
+			var raio = new Array(
+				{'raio' : 50, 'vidas' : -1},
+				{'raio' : 45, 'vidas' : -1,},
+				{'raio' : 40, 'vidas' : -1,}
+			);
+
+
+			function inicializar()
+			{
+				cacadorAltura = 85;
+				cacadorLargura = 70;
+
+				tempoJogo = 30;
+
+				jogadorPause = false;
+
+				vidas = 5;
+				pontos = 0;
+
+				jogadorPosicaoX = 141;
+				jogadorPosicaoY = 377;
+
+				primeira = new cobra()
+				cobras = new Array(primeira);
+
+
+				facaoX = Math.random() * canvas.width;
+				facaoY = Math.random() * canvas.height;
+				facaoVelocidadeX =  Math.round(Math.random() * (8 - 4)) + 4;
+				facaoVelocidadeY =  Math.round(Math.random() * (8 - 4)) + 4;
+				facaovelobaseX =  facaoVelocidadeX;
+				facaovelobaseY = facaoVelocidadeY;
+
+				coracao_vidaX = Math.random() * canvas.width;
+				coracao_vidaY = Math.random() * canvas.height;
+				coracao_vidaVelocidadeX = 8;
+				coracao_vidaVelocidadeY = 16;
+
+				velocidadeJogador = 15;
+
+				canvas = document.getElementById("canvas");
+				context = canvas.getContext("2d");
+
+				document.addEventListener('keydown', keyDown);
+				//document.addEventListener('keyup', keyUp);
+
+				cronometro(tempoJogo);
+				resizeCanvas();
+
+				intervalo = setInterval(gameLoop, 30);
+
+			}
+
+			/* Nova função para RESIZE */
+		    function resizeCanvas() {
+		    canvas.width = window.innerWidth;
+		    canvas.height = window.innerHeight;
+		    gameLoop();
+		    }
+
+
+
+
+			function keyDown(e)
+			{
+				if(e.keyCode == 37)  // Seta para a Direita
+				{
+					if(jogadorPosicaoX > 0)
+					{
+						jogadorPosicaoX -= velocidadeJogador;
+					}
+				}
+
+				if(e.keyCode == 39)  // Seta para a Esquerda
+				{
+					if(jogadorPosicaoX < (canvas.width - cacadorLargura))
+					{
+						jogadorPosicaoX += velocidadeJogador;
+					}
+				}
+
+						if (e.keyCode == 38){ // seta para cima
+
+					if(jogadorPosicaoY > 0)
+					{
+						jogadorPosicaoY -= velocidadeJogador;
+					}
+				}
+				if(e.keyCode == 40)  // Seta para baixo
+				{
+					if(jogadorPosicaoY < (canvas.height - cacadorAltura))
+					{
+						jogadorPosicaoY += velocidadeJogador;
+					}
+				}
+
+				if(e.keyCode == 81)  // Q (Quiet)
+				{
+					jogadorfim = true;
+				}
+
+				if(e.keyCode == 80) // P (Pause)
+				{
+					if(jogadorPause)
+					{
+						jogadorPause = false; //Para de rodar o intervalo.
+						intervalo = setInterval(gameLoop, 30);
+						cronometro(document.getElementById("cronometro").innerHTML);
+					}
+					else
+					{
+						jogadorPause = true;
+						gameLoop();
+
+						clearInterval(intervalo);
+						clearTimeout(timerId);
+
+					}
+				}
+			}
+
+			function cobra(){
+				var index = Math.round(Math.random() * (3 - 1) +1) - 1;
+				this.cobrasRaio = raio[index]['raio'];
+				this.cobrasvidas = raio[index]['vidas'];
+				this.cobrasPosX = Math.random() * canvas.width - 55;
+				this.cobrasPosY = Math.random() * canvas.height - 55;
+				this.cobrasSpeedX = Math.round(Math.random() * (15 - 3)) + 3;
+				this.cobrasSpeedY = Math.round(Math.random() * (15 - 3)) + 3;
+				this.cobrasBaseX = Math.round(Math.random() * (15 - 3)) + 3;
+				this.cobrasBaseY = Math.round(Math.random() * (15 - 3)) + 3;
+				this.colisao = false
+				this.imgCobra = document.getElementById("cobra");
+				this.alturaCobra = raio[index]['raio'];
+				this.larguraCobra = raio[index]['raio'];
+
+			}
+
+			function gameLoop()
+			{
+				//Limpa Tela
+				context.clearRect(0, 0, canvas.width, canvas.height);
+
+				//Desenha o campo
+				context.fillStyle = 'rgba(255,255, 255,0.01)';
+				context.fillRect(50, 75, canvas.width - 90, canvas.height - 110	);
+
+				//Mostra cacador
+				var cacador = document.getElementById("cacador");
+				context.drawImage(cacador,jogadorPosicaoX,jogadorPosicaoY,cacadorLargura,cacadorAltura);
+
+				if(jogadorPause){
+					context.font = "12pt Bernard MT";
+					context.fillStyle= 'rgb(255, 255, 255)'
+					context.fillText('GAME PAUSED',(canvas.width - 90) / 2,(canvas.height/2)-180,125,110);
+				}
+
+				// Nome do Jogo
+				// context.font= "50pt Brush Script Std"
+				// context.fillStyle= 'rgb(255, 255, 255)';
+				// context.fillText('Escape Enemy',(canvas.width - 235) / 2,50);
+
+				//Mostra vida
+				var coracao = document.getElementById("vidas");
+				context.drawImage(coracao,10,10,50,50);
+				context.font = "32pt Bernard MT";
+                context.fillStyle= 'rgb(255,255,0)';
+				context.fillText(vidas, 60, 50);
+
+				//Pontos
+				context.fillStyle= 'rgb(255, 255, 255)';
+
+				context.fillText('P:'+ pontos, 150, 50);
+
+				// Escreve Tempo restante
+				var tempo = document.getElementById("tempo");
+				context.drawImage(tempo,270,10,35,50);
+				context.fillText(' '+document.getElementById("cronometro").innerHTML, 300, 50);
+
+				//desenha facao
+				var facao = document.getElementById("facao");
+				 context.drawImage(facao,facaoX,facaoY,50,50);
+				 context.beginPath();				
+				 context.closePath();
+				 context.fill();
+
+				if(cobras.length <= 1)//linhas do array
+				{
+					cobras.push(new cobra());//se n tiver ele cria
+				}
+
+				//Cobras
+				cobras.forEach(function(b, index){
+
+					context.drawImage(b.imgCobra,b.cobrasPosX,b.cobrasPosY,b.larguraCobra,b.alturaCobra);
+					context.fill();
+
+					//Criar nova cobra?
+
+					b.cobrasPosX += b.cobrasSpeedX;
+					b.cobrasPosY += b.cobrasSpeedY;
+
+					if(b.cobrasPosY > canvas.height - 55){
+						b.cobrasSpeedY = -b.cobrasSpeedY;
+					}
+
+					if(b.cobrasPosY < 90){
+						b.cobrasSpeedY = b.cobrasBaseY;
+					}
+
+					if(b.cobrasPosX > canvas.width - 55){
+						b.cobrasSpeedX = -b.cobrasSpeedX;
+					}
+
+					if(b.cobrasPosX <= 70){
+						b.cobrasSpeedX = b.cobrasBaseX;
+					}
+
+
+					//Checar colisao cobra
+					if(b.cobrasPosX + 15 >= jogadorPosicaoX && b.cobrasPosX <=(jogadorPosicaoX + cacadorLargura) &&
+						b.cobrasPosY+ 15 >= jogadorPosicaoY && b.cobrasPosY <= (jogadorPosicaoY + cacadorAltura) && b.colisao == false ){
+							b.colisao = true;
+							vidas--;
+							document.getElementById(cobra).setAttribute('style', 'display:none');
+					}
+
+					if(((b.cobrasPosX + 15) < jogadorPosicaoX || b.cobrasPosX > (jogadorPosicaoX + cacadorLargura)) && ((b.cobrasPosY + 15) < jogadorPosicaoY || b.cobrasPosY > (jogadorPosicaoY + cacadorAltura))){
+						b.colisao = false;
+					}
+
+					if(vidas == 0){
+						//Limpa tela
+						context.clearRect(0,0, canvas.width, canvas.height);
+						context.font = "32pt Bernard MT";
+		        		context.fillStyle= 'rgb(255,255,255)';
+						context.fillText("You died!", (canvas.width-250)/2, (canvas.height- 100) /2);
+						context.drawImage(facao,(canvas.width - 400) / 2,(canvas.height - 60) / 2 ,60,60);
+						context.fillText(" "+ pontos,(canvas.width - 250) / 2,(canvas.height + 45) / 2 )
+						clearInterval(intervalo);
+  						clearTimeout(timerId);
+					}
+				})
+				if(vidas <= 2){
+					//desenha coracao vida
+					var coracao_vida = document.getElementById("coracao_vida");
+					context.drawImage(coracao_vida,coracao_vidaX,coracao_vidaY,50,50);
+					context.beginPath();
+					context.closePath();
+					context.fill();
+
+					vidaItem();
+				}
+				facaoItem();
+			}
+
+			 function facaoItem(){
+
+				facaoX += facaoVelocidadeX;
+        		facaoY += facaoVelocidadeY;
+
+				if(facaoY > canvas.height - 55){
+			 			facaoVelocidadeY = -facaoVelocidadeY;
+					}
+
+			 		if(facaoY < 90){
+			 			facaoVelocidadeY = facaovelobaseY;
+			 		}
+
+			 		if(facaoX > canvas.width - 55){
+			 			facaoVelocidadeX = -facaoVelocidadeX;
+			 		}
+
+			 		if(facaoX < 70){
+			 			facaoVelocidadeX = facaovelobaseX;
+			 		}
+
+
+					if(facaoX  >= jogadorPosicaoX && facaoX <= (jogadorPosicaoX + cacadorLargura) &&
+			 		facaoY  >= jogadorPosicaoY && facaoY <= (jogadorPosicaoY + cacadorAltura) && colisao == false)
+			 		{
+			 			colisao = true;
+			 			pontos++;
+
+						cobras.push(new cobra());
+			 		}
+			 		if((facaoX  < jogadorPosicaoX || facaoX > (jogadorPosicaoX + cacadorLargura)) &&
+					 (facaoY < jogadorPosicaoY || facaoY > (jogadorPosicaoY + cacadorAltura))){
+			 		colisao = false;
+
+			 	}
+			 }
+
+			 function vidaItem(){
+				var colisao1 = false;
+				if(coracao_vidaX  >= jogadorPosicaoX && coracao_vidaX <= (jogadorPosicaoX + cacadorLargura) &&
+			 		coracao_vidaY  >= jogadorPosicaoY && coracao_vidaY <= (jogadorPosicaoY + cacadorAltura) && colisao1 == false)
+			 		{
+
+						colisao1 = true;
+			 			vidas++;
+						//document.body.removeChild(coracao_vida).setAttribute('style', 'display:none');
+						document.getElementById(coracao_vida).setAttribute('style', 'display:none');
+			 		}
+			 		if((coracao_vidaX < jogadorPosicaoX || coracao_vidaX > (jogadorPosicaoX + cacadorLargura)) &&
+					 (coracao_vidaY < jogadorPosicaoY || coracao_vidaY > (jogadorPosicaoY + cacadorAltura))){
+			 			colisao1 = false;
+
+
+
+			 	}
+
+					 coracao_vidaX += coracao_vidaVelocidadeX;
+					 coracao_vidaY += coracao_vidaVelocidadeY;
+
+					   	if(coracao_vidaY > canvas.height - 55){
+					   			coracao_vidaVelocidadeY = -5 ;
+					   		}
+
+					   		if(coracao_vidaY < 90){
+					   			coracao_vidaVelocidadeY = 5;
+					   		}
+
+					   		if(coracao_vidaX > canvas.width - 55){
+					   			coracao_vidaVelocidadeX = -5;
+					   		}
+
+					   		if(coracao_vidaX < 70){
+					   			coracao_vidaVelocidadeX = 5;
+					   		}
+			 }
+
+			function game_over()
+			{
+				//Limpa tela
+				context.clearRect(0,0, canvas.width, canvas.height);
+
+				//Mensagem de fim de jogo
+				// context.font = "32pt Tahoma";
+		        // context.fillStyle= 'rgb(255,255,255)';
+				// context.fillText("VERY GOOD!", (canvas.width-250)/2, (canvas.height-32)/2);
+				// // var btn = document.getElementById('botao');
+				// // var botao = document.createElement("button");
+				// clearInterval(intervalo);
+  				// clearTimeout(timerId);
+
+				
+				
+				var msg;
+				var ret = confirm("VERY GOOD!FASE4");
+				if(ret == true){
+				// msg= "xc vdeu certo";
+				window.location.assign("fase4.html");
+				}else{
+					msg="nao deu certo";
+				}
+				// document.write(msg);
+				//   confirm("fase");
+
+			}
+			
+			function cronometro (segundos)
+			{
+				document.getElementById("cronometro").innerHTML = segundos;
+				timerId = setTimeout("cronometro("+ (segundos - 1) +")", 1000); //A cada 1 seg uma chamada recursiva é chamada, atualizando o valor do cronometro.
+
+				if(segundos== 0){
+					clearTimeout(timerId); //Para o cronometro.
+					game_over();
+					document.getElementById("cronometro").innerHTML = 0;
+					return false;
+
+				}
+
+
+
+			}
+
+		</script>
+		<!-- <button id="botao" onclick="gameLoop()">Inserir</button> -->
+		<!-- <a href="tutorial.html" class="button">TUTORIAL</a> -->
+
+	</body>
+</html>

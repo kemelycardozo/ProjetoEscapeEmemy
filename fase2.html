@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html>
+    <head>
+		<title>FASE2</title>
+		<style>
+			html, body {
+				width: 100%;
+				height: 100%;
+				margin: 0px;
+				border: 0;
+				overflow: hidden;  /* Desabilita Barra de Rolagem */
+				display: block;    /* Não permite conteudo flutuar nos lados */
+			}
+
+		  #canvas {
+		   	    /* background-image: url('https://wallpapersite.com/images/wallpapers/stars-2880x1800-galaxy-4k-6362.jpg'); */
+				background-image:url('cemiterio.jpg');
+				background-color: "black";
+		   	    background-size: 100% 100%;
+		   	    background-repeat: no-repeat;
+		   		background-color: black;
+		   }
+		   #padre {
+		   		width: 40px;
+		   		height: 20px;
+		   		display: none;
+		   }
+
+		   #vidas {
+		   		 width: 40px;
+		   		height: 20px;
+		   		display: none;
+		   }
+
+		    #tempo {
+		   		width: 40px;
+		   		height: 20px;
+		   		display: none;
+		   }
+
+
+		   #cronometro {
+				width: 40px;
+		   		height: 20px;
+			    display: none;
+		   }
+		   #caveira {
+		   		width: 40px;
+		   		height: 20px;
+		   		/* display: none; */
+		   }
+		   #lampiao {
+		   		width: 40px;
+		   		height: 20px;
+		   		/* display: none;  */
+		   }
+		   #coracao_vida {
+		   		width: 40px;
+		   		height: 20px;
+
+		   }
+
+		   /* .button {
+            background-color: #555555;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 5px;
+            } */
+		</style>
+    </head>
+    <body  onload="inicializar()" id="fundo">
+		<img src="padre.png" id="padre"/>
+		<img src="coracao.png" id ="vidas"/>
+		<img src="coracao.png" id ="coracao_vida"/>
+		<img src="tempo.png" id ="tempo"/>
+		<img src="caveira.png" id="caveira">
+		<img src="lampiao.png" id="lampiao">
+
+		<span id="cronometro" style="color: red; font-size: 30px;"></span>
+
+	<canvas id="canvas" style='position:absolute; left:0px; top:0px;'>
+			Navegador não suporta HTML5
+		</canvas>
+
+
+		<script type="text/javascript">
+
+
+
+			var padreAltura, padreLargura, jogadorPosicaoX, velocidadeJogador, jogadorPosicaoY, vidas, pontos, jogadorPause, tempoJogo;
+			var intervalo, imgCaveira;
+			var alturaCaveira, larguraCaveira;
+			var lampiaoX, lampiaoY;
+			var lampiaoVelocidadeX,lampiaoVelocidadeY, lampiaovelobaseX, lampiaovelobaseY;
+			var imglampiao;
+
+			var coracao_vidaX, coracao_vidaY, coracao_vidaXX, coracao_vidaYY;
+			var coracao_vidaVelocidadeX, coracao_vidaVelocidadeY;
+
+
+			var raio = new Array(
+				{'raio' : 40, 'vidas' : -1},
+				{'raio' : 30, 'vidas' : -1,},
+				{'raio' : 46, 'vidas' : -1,}
+			);
+
+
+			function inicializar()
+			{
+				padreAltura = 85;
+				padreLargura = 70;
+
+				tempoJogo = 30;
+
+				jogadorPause = false;
+
+				vidas = 5;
+				pontos = 0;
+
+				jogadorPosicaoX = 141;
+				jogadorPosicaoY = 377;
+
+				primeira = new caveira()
+				caveiras = new Array(primeira);
+
+
+				lampiaoX = Math.random() * canvas.width;
+				lampiaoY = Math.random() * canvas.height;
+				lampiaoVelocidadeX =  Math.round(Math.random() * (8 - 4)) + 4;
+				lampiaoVelocidadeY =  Math.round(Math.random() * (8 - 4)) + 4;
+				lampiaovelobaseX =  lampiaoVelocidadeX;
+				lampiaovelobaseY = lampiaoVelocidadeY;
+
+				coracao_vidaX = Math.random() * canvas.width;
+				coracao_vidaY = Math.random() * canvas.height;
+				coracao_vidaVelocidadeX = 8;
+				coracao_vidaVelocidadeY = 16;
+
+				velocidadeJogador = 15;
+
+				canvas = document.getElementById("canvas");
+				context = canvas.getContext("2d");
+
+				document.addEventListener('keydown', keyDown);
+				//document.addEventListener('keyup', keyUp);
+
+				cronometro(tempoJogo);
+				resizeCanvas();
+
+				intervalo = setInterval(gameLoop, 30);
+
+			}
+
+			/* Nova função para RESIZE */
+		    function resizeCanvas() {
+		    canvas.width = window.innerWidth;
+		    canvas.height = window.innerHeight;
+		    gameLoop();
+		    }
+
+
+
+
+			function keyDown(e)
+			{
+				if(e.keyCode == 37)  // Seta para a Direita
+				{
+					if(jogadorPosicaoX > 0)
+					{
+						jogadorPosicaoX -= velocidadeJogador;
+					}
+				}
+
+				if(e.keyCode == 39)  // Seta para a Esquerda
+				{
+					if(jogadorPosicaoX < (canvas.width - padreLargura))
+					{
+						jogadorPosicaoX += velocidadeJogador;
+					}
+				}
+
+						if (e.keyCode == 38){ // seta para cima
+
+					if(jogadorPosicaoY > 0)
+					{
+						jogadorPosicaoY -= velocidadeJogador;
+					}
+				}
+				if(e.keyCode == 40)  // Seta para baixo
+				{
+					if(jogadorPosicaoY < (canvas.height - padreAltura))
+					{
+						jogadorPosicaoY += velocidadeJogador;
+					}
+				}
+
+				if(e.keyCode == 81)  // Q (Quiet)
+				{
+					jogadorfim = true;
+				}
+
+				if(e.keyCode == 80) // P (Pause)
+				{
+					if(jogadorPause)
+					{
+						jogadorPause = false; //Para de rodar o intervalo.
+						intervalo = setInterval(gameLoop, 30);
+						cronometro(document.getElementById("cronometro").innerHTML);
+					}
+					else
+					{
+						jogadorPause = true;
+						gameLoop();
+
+						clearInterval(intervalo);
+						clearTimeout(timerId);
+
+					}
+				}
+			}
+
+			function caveira(){
+				var index = Math.round(Math.random() * (3 - 1) +1) - 1;
+				this.caveirasRaio = raio[index]['raio'];
+				this.caveirasvidas = raio[index]['vidas'];
+				this.caveirasPosX = Math.random() * canvas.width - 55;
+				this.caveirasPosY = Math.random() * canvas.height - 55;
+				this.caveirasSpeedX = Math.round(Math.random() * (15 - 3)) + 3;
+				this.caveirasSpeedY = Math.round(Math.random() * (15 - 3)) + 3;
+				this.caveirasBaseX = Math.round(Math.random() * (15 - 3)) + 3;
+				this.caveirasBaseY = Math.round(Math.random() * (15 - 3)) + 3;
+				this.colisao = false
+				this.imgCaveira = document.getElementById("caveira");
+				this.alturaCaveira = raio[index]['raio'];
+				this.larguraCaveira = raio[index]['raio'];
+
+			}
+
+			function gameLoop()
+			{
+				//Limpa Tela
+				context.clearRect(0, 0, canvas.width, canvas.height);
+
+				//Desenha o campo
+				context.fillStyle = 'rgba(255,255, 255,0.01)';
+				context.fillRect(50, 75, canvas.width - 90, canvas.height - 110	);
+
+				//Mostra Padre
+				var padre = document.getElementById("padre");
+				context.drawImage(padre,jogadorPosicaoX,jogadorPosicaoY,padreLargura,padreAltura);
+
+				if(jogadorPause){
+					context.font = "12pt Bernard MT";
+					context.fillStyle= 'rgb(255, 255, 255)'
+					context.fillText('GAME PAUSED',(canvas.width - 90) / 2,(canvas.height/2)-180,125,110);
+				}
+
+				// Nome do Jogo
+				// context.font= "50pt Brush Script Std"
+				// context.fillStyle= 'rgb(255, 255, 255)';
+				// context.fillText('Escape Enemy',(canvas.width - 235) / 2,50);
+
+				//Mostra vida
+				var coracao = document.getElementById("vidas");
+				context.drawImage(coracao,10,10,50,50);
+				context.font = "32pt Bernard MT";
+                context.fillStyle= 'rgb(255,255,0)';
+				context.fillText(vidas, 60, 50);
+
+				//Pontos
+				context.fillStyle= 'rgb(255, 255, 255)';
+
+				context.fillText('P:'+ pontos, 150, 50);
+
+				// Escreve Tempo restante
+				var tempo = document.getElementById("tempo");
+				context.drawImage(tempo,270,10,35,50);
+				context.fillText(' '+document.getElementById("cronometro").innerHTML, 300, 50);
+
+				//desenha lampiao
+				var lampiao = document.getElementById("lampiao");
+				 context.drawImage(lampiao,lampiaoX,lampiaoY,30,50);
+				 context.beginPath();
+				 context.closePath();
+				 context.fill();
+
+				if(caveiras.length <= 1)//linhas do array
+				{
+					caveiras.push(new caveira());//se n tiver ele cria
+				}
+
+				//caveiras
+				caveiras.forEach(function(b, index){
+
+					context.drawImage(b.imgCaveira,b.caveirasPosX,b.caveirasPosY,b.larguraCaveira,b.alturaCaveira);
+					context.fill();
+
+					//Criar nova caveira?
+
+					b.caveirasPosX += b.caveirasSpeedX;
+					b.caveirasPosY += b.caveirasSpeedY;
+
+					if(b.caveirasPosY > canvas.height - 55){
+						b.caveirasSpeedY = -b.caveirasSpeedY;
+					}
+
+					if(b.caveirasPosY < 90){
+						b.caveirasSpeedY = b.caveirasBaseY;
+					}
+
+					if(b.caveirasPosX > canvas.width - 55){
+						b.caveirasSpeedX = -b.caveirasSpeedX;
+					}
+
+					if(b.caveirasPosX <= 70){
+						b.caveirasSpeedX = b.caveirasBaseX;
+					}
+
+
+					//Checar colisao caveira
+					if(b.caveirasPosX + 15 >= jogadorPosicaoX && b.caveirasPosX <=(jogadorPosicaoX + padreLargura) &&
+						b.caveirasPosY+ 15 >= jogadorPosicaoY && b.caveirasPosY <= (jogadorPosicaoY + padreAltura) && b.colisao == false ){
+							b.colisao = true;
+							vidas--;
+							document.getElementById(caveira).setAttribute('style', 'display:none');
+					}
+
+					if(((b.caveirasPosX + 15) < jogadorPosicaoX || b.caveirasPosX > (jogadorPosicaoX + padreLargura)) && ((b.caveirasPosY + 15) < jogadorPosicaoY || b.caveirasPosY > (jogadorPosicaoY + padreAltura))){
+						b.colisao = false;
+					}
+
+					if(vidas == 0){
+						//Limpa tela
+						context.clearRect(0,0, canvas.width, canvas.height);
+						context.font = "32pt Bernard MT";
+		        		context.fillStyle= 'rgb(255,255,255)';
+						context.fillText("You died!", (canvas.width-250)/2, (canvas.height- 100) /2);
+						context.drawImage(lampiao,(canvas.width - 400) / 2,(canvas.height - 60) / 2 ,60,60);
+						context.fillText(" "+ pontos,(canvas.width - 250) / 2,(canvas.height + 45) / 2 )
+						clearInterval(intervalo);
+  						clearTimeout(timerId);
+					}
+				})
+				if(vidas <= 2){
+					//desenha coracao vida
+					var coracao_vida = document.getElementById("coracao_vida");
+					context.drawImage(coracao_vida,coracao_vidaX,coracao_vidaY,50,50);
+					context.beginPath();
+					context.closePath();
+					context.fill();
+
+					vidaItem();
+				}
+				lampiaoItem();
+			}
+
+			 function lampiaoItem(){
+
+				lampiaoX += lampiaoVelocidadeX;
+        		lampiaoY += lampiaoVelocidadeY;
+
+				if(lampiaoY > canvas.height - 55){
+					lampiaoVelocidadeY = -lampiaoVelocidadeY;
+					}
+
+			 		if(lampiaoY < 90){
+						lampiaoVelocidadeY = lampiaovelobaseY;
+			 		}
+
+			 		if(lampiaoX > canvas.width - 55){
+						lampiaoVelocidadeX = -lampiaoVelocidadeX;
+			 		}
+
+			 		if(lampiaoX < 70){
+						lampiaoVelocidadeX = lampiaovelobaseX;
+			 		}
+
+
+					if(lampiaoX  >= jogadorPosicaoX && lampiaoX <= (jogadorPosicaoX + padreLargura) &&
+					lampiaoY  >= jogadorPosicaoY && lampiaoY <= (jogadorPosicaoY + padreAltura) && colisao == false)
+			 		{
+			 			colisao = true;
+			 			pontos++;
+
+						caveiras.push(new caveira());
+			 		}
+			 		if((lampiaoX  < jogadorPosicaoX || lampiaoX > (jogadorPosicaoX + padreLargura)) &&
+					 (lampiaoY < jogadorPosicaoY || lampiaoY > (jogadorPosicaoY + padreAltura))){
+			 		colisao = false;
+
+			 	}
+			 }
+
+			 function vidaItem(){
+				var colisao1 = false;
+				if(coracao_vidaX  >= jogadorPosicaoX && coracao_vidaX <= (jogadorPosicaoX + padreLargura) &&
+			 		coracao_vidaY  >= jogadorPosicaoY && coracao_vidaY <= (jogadorPosicaoY + padreAltura) && colisao1 == false)
+			 		{
+
+						colisao1 = true;
+			 			vidas++;
+						//document.body.removeChild(coracao_vida).setAttribute('style', 'display:none');
+						document.getElementById(coracao_vida).setAttribute('style', 'display:none');
+			 		}
+			 		if((coracao_vidaX < jogadorPosicaoX || coracao_vidaX > (jogadorPosicaoX + padreLargura)) &&
+					 (coracao_vidaY < jogadorPosicaoY || coracao_vidaY > (jogadorPosicaoY + padreAltura))){
+			 			colisao1 = false;
+
+
+
+			 	}
+
+					 coracao_vidaX += coracao_vidaVelocidadeX;
+					 coracao_vidaY += coracao_vidaVelocidadeY;
+
+					   	if(coracao_vidaY > canvas.height - 55){
+					   			coracao_vidaVelocidadeY = -5 ;
+					   		}
+
+					   		if(coracao_vidaY < 90){
+					   			coracao_vidaVelocidadeY = 5;
+					   		}
+
+					   		if(coracao_vidaX > canvas.width - 55){
+					   			coracao_vidaVelocidadeX = -5;
+					   		}
+
+					   		if(coracao_vidaX < 70){
+					   			coracao_vidaVelocidadeX = 5;
+					   		}
+			 }
+
+			function game_over()
+			{
+				//Limpa tela
+				context.clearRect(0,0, canvas.width, canvas.height);
+
+				//Mensagem de fim de jogo
+				// context.font = "32pt Tahoma";
+		        // context.fillStyle= 'rgb(255,255,255)';
+				// context.fillText("VERY GOOD!", (canvas.width-250)/2, (canvas.height-32)/2);
+				// // var btn = document.getElementById('botao');
+				// // var botao = document.createElement("button");
+				// clearInterval(intervalo);
+  				// clearTimeout(timerId);
+
+				
+				
+				var msg;
+				var ret = confirm("VERY GOOD!FASE3");
+				if(ret == true){
+				// msg= "xc vdeu certo";
+				window.location.assign("fase3.html");
+				}else{
+					msg="nao deu certo";
+				}
+				// document.write(msg);
+				//   confirm("fase");
+
+			}
+			
+			function cronometro (segundos)
+			{
+				document.getElementById("cronometro").innerHTML = segundos;
+				timerId = setTimeout("cronometro("+ (segundos - 1) +")", 1000); //A cada 1 seg uma chamada recursiva é chamada, atualizando o valor do cronometro.
+
+				if(segundos== 0){
+					clearTimeout(timerId); //Para o cronometro.
+					game_over();
+					document.getElementById("cronometro").innerHTML = 0;
+					return false;
+
+				}
+
+
+
+			}
+
+		</script>
+		<!-- <button id="botao" onclick="gameLoop()">Inserir</button> -->
+		<!-- <a href="tutorial.html" class="button">TUTORIAL</a> -->
+
+	</body>
+</html>

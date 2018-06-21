@@ -1,0 +1,18 @@
+Quadro 1 - Descrição do processo de perca de vida
+
+Cado de uso: Perca de vida
+Atores: Astronauta, meteoro
+Descrição: "imagem da ação" Este caso de uso refere-se a perca de vida quando ouver colisão entre o astrounauta e o meteoro.
+	   No momento em que o astronauta eo meteoro colidirem o astronauta irá sofrer perca de 1 de vida, se mais de um meteoro colodir com
+ele ao mesmo tempo  sera retirado a mesma quantia de vida que a quantidade de metoros que o atingiu.
+
+Quadro 2 - Descrição do processo de ganho de vida
+Atores: Astronauta, coração
+Caso de uso: Ganho de vida
+Descrição:  "imagem da ação" Este caso de uso refere-se a o gahno de 1 de vida pelo astronauta.
+	    No momento em que o astronauta eo coração colidirem o astronauta irá ganhar 1 de vida, após a colisão o coração sumirá. 
+
+Quadro 3 - Descrição do processo de pontos
+Atores: Astronauta, o2
+Descrição: "imagem da ação" Este caso de uso refere-se a o gahno de 1 ponto pelo astronauta.
+	    No momento em que o astronauta eo o2 colidirem o astronauta irá ganhar 1 ponto. 
